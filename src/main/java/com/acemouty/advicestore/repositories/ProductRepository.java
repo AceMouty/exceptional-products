@@ -122,7 +122,7 @@ public class ProductRepository {
         }
 
         // Simulate database timeout for certain categories
-        if (category.toLowerCase().equals("cursed")) {
+        if (category.equalsIgnoreCase("cursed")) {
             throw new DatabaseAccessException("Access to cursed items category is forbidden");
         }
 
