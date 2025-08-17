@@ -1,0 +1,308 @@
+# ============================================
+# Store API - Exception Testing HTTP Requests
+# Test all exception handling code paths
+# ============================================
+#
+# ============================================
+# Exception Summary for Testing:
+# ============================================
+#
+# ProductNotFoundException:
+# - Tests 1, 2, 3: Non-existent product operations
+#
+# DatabaseAccessException:
+# - Test 4: Cursed ID (666)
+# - Test 5: Random database failures (30% chance)
+# - Test 6: Triforce search restriction
+# - Test 7: Cursed category access
+# - Test 8: Price range too large
+#
+# InvalidProductDataException:
+# - Test 9: Ganondorf in product name
+# - Test 10: Negative stock
+# - Test 11: Negative price
+# - Test 12: Deleting legendary items
+#
+# ProductAlreadyExistsException:
+# - Tests 13, 14: Duplicate product creation
+#
+# IllegalArgumentException:
+# - Tests 15-19: Various null/empty/invalid parameters
+#
+# MethodArgumentNotValidException:
+# - Tests 20, 21: Invalid JSON and missing fields
+#
+# Generic Exception:
+# - Tests 22-24: Malformed requests, unsupported methods
+#
+# Valid Operations:
+# - Tests 25-30: Confirm normal functionality works
+# ============================================
+
+### Test 1: ProductNotFoundException - Get non-existent product
+GET http://localhost:8080/api/products/999
+Accept: application/json
+
+###
+
+### Test 2: ProductNotFoundException - Update non-existent product
+PUT http://localhost:8080/api/products/999
+Content-Type: application/json
+
+{
+  "name": "Non-existent Item",
+  "description": "This should fail",
+  "price": 100.00,
+  "category": "Test",
+  "stock": 5
+}
+
+###
+
+### Test 3: ProductNotFoundException - Delete non-existent product
+DELETE http://localhost:8080/api/products/999
+
+###
+
+### Test 4: DatabaseAccessException - Cursed product ID (666)
+GET http://localhost:8080/api/products/666
+Accept: application/json
+
+###
+
+### Test 5: DatabaseAccessException - Random database failure (try multiple times)
+GET http://localhost:8080/api/products
+Accept: application/json
+
+###
+
+### Test 6: DatabaseAccessException - Search for "Triforce"
+GET http://localhost:8080/api/products/search?name=triforce
+Accept: application/json
+
+###
+
+### Test 7: DatabaseAccessException - Access cursed category
+GET http://localhost:8080/api/products/category/cursed
+Accept: application/json
+
+###
+
+### Test 8: DatabaseAccessException - Price range too large
+GET http://localhost:8080/api/products/price?minPrice=0&maxPrice=15000
+Accept: application/json
+
+###
+
+### Test 9: InvalidProductDataException - Create product with "Ganondorf" in name
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Ganondorf's Evil Sword",
+  "description": "A cursed weapon",
+  "price": 666.00,
+  "category": "Weapons",
+  "stock": 1
+}
+
+###
+
+### Test 10: InvalidProductDataException - Create product with negative stock
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Broken Item",
+  "description": "Should fail validation",
+  "price": 50.00,
+  "category": "Test",
+  "stock": -5
+}
+
+###
+
+### Test 11: InvalidProductDataException - Create product with negative price
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Free Item",
+  "description": "Negative price test",
+  "price": -10.00,
+  "category": "Test",
+  "stock": 1
+}
+
+###
+
+### Test 12: InvalidProductDataException - Try to delete Master Sword (ID: 1)
+DELETE http://localhost:8080/api/products/1
+
+###
+
+### Test 13: ProductAlreadyExistsException - Create duplicate product
+# First, create a new product
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Test Duplicate Item",
+  "description": "First creation",
+  "price": 25.00,
+  "category": "Test",
+  "stock": 3
+}
+
+###
+
+### Test 14: ProductAlreadyExistsException - Try to create the same product again
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Test Duplicate Item",
+  "description": "Second creation - should fail",
+  "price": 30.00,
+  "category": "Test",
+  "stock": 5
+}
+
+###
+
+### Test 15: IllegalArgumentException - Search with empty name
+GET http://localhost:8080/api/products/search?name=
+Accept: application/json
+
+###
+
+### Test 16: IllegalArgumentException - Filter by empty category
+GET http://localhost:8080/api/products/category/
+Accept: application/json
+
+###
+
+### Test 17: IllegalArgumentException - Price range with null values
+GET http://localhost:8080/api/products/price?minPrice=&maxPrice=100
+Accept: application/json
+
+###
+
+### Test 18: IllegalArgumentException - Invalid price range (min > max)
+GET http://localhost:8080/api/products/price?minPrice=100&maxPrice=50
+Accept: application/json
+
+###
+
+### Test 19: IllegalArgumentException - Delete with null ID (URL issue)
+DELETE http://localhost:8080/api/products/
+Accept: application/json
+
+###
+
+### Test 20: MethodArgumentNotValidException - Create product with invalid JSON
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": null,
+  "price": "invalid_price",
+  "category": "",
+  "stock": "not_a_number"
+}
+
+###
+
+### Test 21: MethodArgumentNotValidException - Missing required fields
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "description": "Missing name and other required fields"
+}
+
+###
+
+### Test 22: Exception (Generic) - Malformed JSON
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Test Item",
+  "description": "Malformed JSON test",
+  "price": 50.00,
+  "category": "Test"
+  "stock": 1
+}
+
+###
+
+### Test 23: Exception (Generic) - Invalid HTTP method
+PATCH http://localhost:8080/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Updated Item"
+}
+
+###
+
+### Test 24: Exception (Generic) - Invalid Content-Type
+POST http://localhost:8080/api/products
+Content-Type: text/plain
+
+name=Test&price=50.00
+
+###
+
+### Test 25: Valid request to confirm normal operation
+GET http://localhost:8080/api/products/1
+Accept: application/json
+
+###
+
+### Test 26: Another valid request - Create valid product
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Valid Test Item",
+  "description": "This should work fine",
+  "price": 75.50,
+  "category": "Test",
+  "stock": 10
+}
+
+###
+
+### Test 27: Valid request - Search for existing item
+GET http://localhost:8080/api/products/search?name=sword
+Accept: application/json
+
+###
+
+### Test 28: Valid request - Filter by category
+GET http://localhost:8080/api/products/category/Weapons
+Accept: application/json
+
+###
+
+### Test 29: Valid request - Price range filter
+GET http://localhost:8080/api/products/price?minPrice=0&maxPrice=100
+Accept: application/json
+
+###
+
+### Test 30: Valid request - Update existing product
+PUT http://localhost:8080/api/products/2
+Content-Type: application/json
+
+{
+  "name": "Updated Hylian Shield",
+  "description": "An updated legendary shield",
+  "price": 800.00,
+  "category": "Shields",
+  "stock": 2
+}
+###
