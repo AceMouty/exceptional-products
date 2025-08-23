@@ -24,6 +24,7 @@ public class ProductController {
         this.productRepository = productRepository;
     }
 
+    // Override the exception handler for ProductNotFoundException configured in the GlobalExceptionHandler
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleProductNotFound(
             ProductNotFoundException ex, WebRequest request) {
